@@ -22,6 +22,10 @@
 
 import SpriteKit
 
+public protocol SKScrollViewDelegates {
+    func itemIndexOnChange(index: Int);
+}
+
 /**
  SwiftySKScrollView
  
@@ -49,6 +53,8 @@ public class SwiftySKScrollView: UIScrollView {
             isUserInteractionEnabled = !isDisabled
         }
     }
+ 
+    public var actions: SKScrollViewDelegates?;
     
     /// Moveable node
     private let moveableNode: SKNode
@@ -104,7 +110,22 @@ public class SwiftySKScrollView: UIScrollView {
 // MARK: - Touches
 
 extension SwiftySKScrollView {
+
+    private func getIndex(_ scrollView: UIScrollView) -> Int {
+        let itemsCount = Int((scrollView.contentSize.width / scrollView.frame.size.width).rounded()) - 1;
+        
+        let index = scrollView.contentOffset.x / scrollView.frame.size.width;
+        return itemsCount - Int(index.rounded());
+    }
     
+    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        actions?.itemIndexOnChange(index: getIndex(scrollView));
+    }
+    
+    public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        actions?.itemIndexOnChange(index: getIndex(scrollView));
+    }
+ 
     override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard !isDisabled else { return }
         super.touchesBegan(touches, with: event)
